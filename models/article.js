@@ -4,11 +4,11 @@ class Article {
 
     constructor(artcl){
         this.article = {
-            "id": uid(),
-            "title": artcl.title,
-            "text": artcl.text,
+            "id": uid().slice(0, 3),
+            "title": artcl.title || '',
+            "text": artcl.text || '',
             "date": this.getDate(),
-            "author": artcl.author,
+            "author": artcl.author || '',
             "comments": [],
         }
     }
@@ -18,7 +18,7 @@ class Article {
     }
 
     getDate(){
-        let date = new Date().toUTCString()
+        let date = new Date().toString();
         return date.split(/ /g).slice(1, 5).join(' ');
     }
 }

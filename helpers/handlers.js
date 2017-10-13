@@ -1,4 +1,5 @@
 const artcl = require('../models/article');
+const cmmnt = require('../models/comment');
 
 const handlers = {
     '/articles/readall': articlesReadall,
@@ -11,22 +12,29 @@ const handlers = {
 };
 
 function articlesReadall(req, res, payload, articles, cb) {
-    const result = {};
+    const result = articles;
   
     cb(null, result, articles);
 }
 
 function articlesRead(req, res, payload, articles, cb) {
-    const result = {};
-  
-    cb(null, result, articles);
+    let context = {};
+    const index = articles.length > 0 ? articles.findIndex((elem) => elem.id === payload.id) : -1;
+
+    if(index !== undefined && index >= 0){
+        context = articles[index];
+    }
+    else{
+        context = {"Error": "No article with current articleId"};
+    }
+    cb(null, context, articles);
 }
 
 function articlesCreate(req, res, payload, articles, cb) {
-    article = new artcl.Article(payload);
+    let article = new artcl.Article(payload);
     articles.push(article.getArticle());
   
-    cb(null, {state: 'Article added'}, articles);
+    cb(null, article.getArticle(), articles);
 }
 
 function articlesUpdate(req, res, payload, articles, cb) {
@@ -36,15 +44,32 @@ function articlesUpdate(req, res, payload, articles, cb) {
 }
 
 function articlesDelete(req, res, payload, articles, cb) {
-    const result = {};
-  
-    cb(null, result, articles);
+    let context = {};
+    const index = articles.length > 0 ? articles.findIndex((elem) => elem.id === payload.id) : -1;
+
+    if(index !== undefined && index >= 0){
+        delete articles[index];
+        context = {"Result": "Article deleted"};
+    }
+    else{
+        context = {"Error": "No article with current articleId"};
+    }
+    cb(null, context, articles);
 }
 
 function commentsCreate(req, res, payload, articles, cb) {
-    const result = {};
-  
-    cb(null, result, articles);
+    let comment = new cmmnt.Comment(payload);
+    let context = {};
+    const index = articles.length > 0 ? articles.findIndex((elem) => elem.id === comment.getArticleId()) : -1;
+
+    if(index !== undefined){
+        context = comment.getComment();
+        articles[index].comments.push(context);
+    }
+    else{
+        context = {"Error": "No article with current articleId"};
+    }
+    cb(null, context, articles);
 }
 
 function commentsDelete(req, res, payload, articles, cb) {
