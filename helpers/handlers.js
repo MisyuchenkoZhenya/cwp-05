@@ -1,10 +1,6 @@
 const artcl = require('../models/article');
 const cmmnt = require('../models/comment');
-
-Error_400 = {
-    "code": 400,
-    "message": "Request invalid"
-}
+const Err = require('./errors').Errors;
 
 const handlers = {
     '/articles/readall': articlesReadall,
@@ -30,16 +26,25 @@ function articlesRead(req, res, payload, articles, cb) {
         context = articles[index];
     }
     else{
-        context = {"Error": "No article with current articleId"};
+        context = Err[411];
     }
     cb(null, context, articles);
 }
 
 function articlesCreate(req, res, payload, articles, cb) {
-    let article = new artcl.Article(payload);
-    articles.push(article.getArticle());
-  
-    cb(null, article.getArticle(), articles);
+    try{
+        let article = new artcl.Article(payload);
+        if(!isCorrectFields(article.getArticle())){
+            throw (err);
+        }
+        articles.push(article.getArticle());
+
+        cb(null, article.getArticle(), articles);  
+    }
+    catch(Error){
+        cb(Err[400], {}, articles);          
+    }
+    
 }
 
 function articlesUpdate(req, res, payload, articles, cb) {
@@ -54,7 +59,7 @@ function articlesUpdate(req, res, payload, articles, cb) {
         }
     }
     catch(Error){
-        context = Error_400;
+        context = Err[400];
     }
   
     cb(null, context, articles);
@@ -69,29 +74,37 @@ function articlesDelete(req, res, payload, articles, cb) {
         context = {"Result": "Article deleted"};
     }
     else{
-        context = {"Error": "No article with current articleId"};
+        context = Err[411];
     }
     cb(null, context, articles);
 }
 
 function commentsCreate(req, res, payload, articles, cb) {
-    let comment = new cmmnt.Comment(payload);
-    let context = {};
-    const index = articles.length > 0 ? articles.findIndex((elem) => elem.id === comment.getArticleId()) : -1;
-
-    if(index !== undefined){
-        context = comment.getComment();
-        articles[index].comments.push(context);
+    try{
+        let comment = new cmmnt.Comment(payload);
+        if(!isCorrectFields(comment.getComment())){
+            throw (err);
+        }
+        let context = {};
+        const index = articles.length > 0 ? articles.findIndex((elem) => elem.id === comment.getArticleId()) : -1;
+    
+        if(index !== undefined){
+            context = comment.getComment();
+            articles[index].comments.push(context);
+        }
+        else{
+            context = Err[411];
+        }
+        cb(null, context, articles);
     }
-    else{
-        context = {"Error": "No article with current articleId"};
+    catch(Error){
+        cb(Err[400], {}, articles);
     }
-    cb(null, context, articles);
 }
 
 function commentsDelete(req, res, payload, articles, cb) {
     let comment_index;
-    let context = {"Error": "No comment with current commentId"};
+    let context = Err[412];
     articles.forEach((elem) => {
         comment_index = getCommentIndex(elem, payload.id);
         if(comment_index !== -1){
@@ -104,7 +117,7 @@ function commentsDelete(req, res, payload, articles, cb) {
 }
 
 function notFound(req, res, payload, articles, cb) {
-    cb({ code: 404, message: 'Not found'}, articles);
+    cb(Err[404], articles);
 }
 
 function getCommentIndex(article, comment_id){
@@ -128,6 +141,13 @@ function updateArticle(currentArticle, newArticle){
 
     }
     return currentArticle;
+}
+
+function isCorrectFields(object){
+    for(let elem in object){
+        if(object[elem] === undefined) return false;
+    }
+    return true;
 }
 
 module.exports.handlers = handlers;

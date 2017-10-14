@@ -5,10 +5,10 @@ class Article {
     constructor(artcl){
         this.article = {
             "id": uid().slice(0, 3),
-            "title": artcl.title || '',
-            "text": artcl.text || '',
+            "title": artcl.title,
+            "text": artcl.text,
             "date": this.getDate(),
-            "author": artcl.author || '',
+            "author": artcl.author,
             "comments": [],
         }
     }

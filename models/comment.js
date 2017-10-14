@@ -6,9 +6,9 @@ class Comment {
         this.comment = {
             "id": uid().slice(0, 3),
             "articleId": commnt.articleId,
-            "text": commnt.text || '',
+            "text": commnt.text,
             "date": this.getDate(),
-            "author": commnt.author || '',
+            "author": commnt.author,
         }
     }
 

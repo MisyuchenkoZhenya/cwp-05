@@ -1,21 +1,20 @@
+const Err = require('./errors').Errors;
+
 function parseBodyJson(req, cb) {
   let body = [];
-  let params = {};
 
   try{
-    req.on('data', function(chunk) {
+    req.on('data', (chunk) => {
       body.push(chunk);
-    }).on('end', function() {
-      body = Buffer.concat(body).toString();
-  
-      params = JSON.parse(body);
+    }).on('end', () => {
+      body = body.length > 0 ? Buffer.concat(body).toString() : "{}";
+      let params = JSON.parse(body);
+      cb(null, params);
     });
   }
   catch(Error){
-    cb({"code": 400, "message": "Request invalid"}, params);
+    cb(Err[400], {});
   }
-
-  cb(null, params);
 }
 
 module.exports.parseBodyJson = parseBodyJson;
