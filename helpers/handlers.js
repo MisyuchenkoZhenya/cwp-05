@@ -1,6 +1,11 @@
 const artcl = require('../models/article');
 const cmmnt = require('../models/comment');
 
+Error_400 = {
+    "code": 400,
+    "message": "Request invalid"
+}
+
 const handlers = {
     '/articles/readall': articlesReadall,
     '/articles/read': articlesRead,
@@ -38,9 +43,21 @@ function articlesCreate(req, res, payload, articles, cb) {
 }
 
 function articlesUpdate(req, res, payload, articles, cb) {
-    const result = {};
+    let context = {};
+    
+    try{
+        const index = articles.length > 0 ? articles.findIndex((elem) => elem.id === payload.id) : -1;
+        
+        if(index !== undefined && index >= 0){
+            articles[index] = updateArticle(articles[index], payload.update);
+            context = {"Result": "Article updated"};
+        }
+    }
+    catch(Error){
+        context = Error_400;
+    }
   
-    cb(null, result, articles);
+    cb(null, context, articles);
 }
 
 function articlesDelete(req, res, payload, articles, cb) {
@@ -73,13 +90,44 @@ function commentsCreate(req, res, payload, articles, cb) {
 }
 
 function commentsDelete(req, res, payload, articles, cb) {
-    const result = {};
+    let comment_index;
+    let context = {"Error": "No comment with current commentId"};
+    articles.forEach((elem) => {
+        comment_index = getCommentIndex(elem, payload.id);
+        if(comment_index !== -1){
+            elem.comments.splice(comment_index, 1);
+            context = {"Result": "Comment deleted"};
+        }
+    });
   
-    cb(null, result, articles);
+    cb(null, context, articles);
 }
 
 function notFound(req, res, payload, articles, cb) {
     cb({ code: 404, message: 'Not found'}, articles);
+}
+
+function getCommentIndex(article, comment_id){
+    let index;
+    if(article.comments.length > 0){
+        index = article.comments.findIndex((elem) => elem.id === comment_id);   
+    }
+    else{
+        index = -1;
+    }
+    return index;
+}
+
+function updateArticle(currentArticle, newArticle){
+    try{
+        for(let elem in newArticle){
+            currentArticle[elem] = newArticle[elem];
+        }
+    }
+    catch(Error){
+
+    }
+    return currentArticle;
 }
 
 module.exports.handlers = handlers;

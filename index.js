@@ -2,6 +2,7 @@ const http = require('http');
 const fs = require('fs');
 const hndl = require('./helpers/handlers');
 const jsonParser = require('./helpers/jsonParser');
+const Err = require('./helpers/errors').Errors;
 const jsonPath = './content/articles.json';
 
 const hostname = '127.0.0.1';
@@ -11,15 +12,17 @@ const articles = getJSON(jsonPath);
 
 
 const server = http.createServer((req, res) => {
+  
   jsonParser.parseBodyJson(req, (err, payload) => {
+    if(err || req.method !== "POST"){
+      sendStatus(res, err);
+      return;      
+    }
     const handler = getHandler(req.url);
 
     handler(req, res, payload, articles, (err, result, articles) => {
       if (err) {
-        res.statusCode = err.code;
-        res.setHeader('Content-Type', 'application/json');
-        res.end( JSON.stringify(err) );
-
+        sendStatus(res, err);
         return;
       }
 
@@ -55,4 +58,11 @@ function getJSON(path){
   catch(Error){
     return [];
   }
+}
+
+function sendStatus(res, err){
+  if(!err) err = Err[400];
+  res.statusCode = err.code;
+  res.setHeader('Content-Type', 'application/json');
+  res.end( JSON.stringify(err) );
 }
