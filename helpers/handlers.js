@@ -1,6 +1,7 @@
 const artcl = require('../models/article');
 const cmmnt = require('../models/comment');
 const Err = require('./errors').Errors;
+const LOG = require('./logger').LOG;
 
 const handlers = {
     '/articles/readall': articlesReadall,
@@ -26,7 +27,7 @@ function articlesRead(req, res, payload, articles, cb) {
         context = articles[index];
     }
     else{
-        context = Err[411];
+        context = logError(411);
     }
     cb(null, context, articles);
 }
@@ -59,7 +60,7 @@ function articlesUpdate(req, res, payload, articles, cb) {
         }
     }
     catch(Error){
-        context = Err[400];
+        context = logError(400);
     }
   
     cb(null, context, articles);
@@ -74,7 +75,7 @@ function articlesDelete(req, res, payload, articles, cb) {
         context = {"Result": "Article deleted"};
     }
     else{
-        context = Err[411];
+        context = logError(411);
     }
     cb(null, context, articles);
 }
@@ -93,7 +94,7 @@ function commentsCreate(req, res, payload, articles, cb) {
             articles[index].comments.push(context);
         }
         else{
-            context = Err[411];
+            context = logError(411);
         }
         cb(null, context, articles);
     }
@@ -148,6 +149,12 @@ function isCorrectFields(object){
         if(object[elem] === undefined) return false;
     }
     return true;
+}
+
+function logError(err){
+    const Error = Err[err];
+    LOG(`Error(${Error.code}): ${Error.message}.`);
+    return Err[err];
 }
 
 module.exports.handlers = handlers;

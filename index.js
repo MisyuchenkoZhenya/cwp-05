@@ -11,7 +11,6 @@ const port = 3000;
 
 const articles = getJSON(jsonPath);
 
-
 const server = http.createServer((req, res) => {
   
   jsonParser.parseBodyJson(req, (err, payload) => {
@@ -38,6 +37,7 @@ const server = http.createServer((req, res) => {
 });
 
 server.listen(port, hostname, () => {
+  checkDirs();
   console.log(`Server running at http://${hostname}:${port}/`);
   LOG(`Server running at 'http://${hostname}:${port}/'.`);
 });
@@ -70,4 +70,10 @@ function sendStatus(res, err){
   LOG(`ERROR:\n${err}.`);
   res.setHeader('Content-Type', 'application/json');
   res.end( JSON.stringify(err) );
+}
+
+function checkDirs(){
+  if(!fs.existsSync(`${__dirname}\\content`)){
+    fs.mkdirSync(`${__dirname}\\content`);
+  }
 }
